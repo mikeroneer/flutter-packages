@@ -366,8 +366,8 @@ class RouteMatchListCodec extends Codec<RouteMatchList, Map<Object?, Object?>> {
       : decoder = _RouteMatchListDecoder(configuration);
 
   static const String _locationKey = 'location';
-  static const String _extraKey = 'state';
-  static const String _imperativeMatchesKey = 'imperativeMatches';
+  static const String extraKey = 'state';
+  static const String imperativeMatchesKey = 'imperativeMatches';
   static const String _pageKey = 'pageKey';
 
   @override
@@ -402,9 +402,9 @@ class _RouteMatchListEncoder
     } on JsonUnsupportedObjectError {/* give up if not serializable */}
     return <Object?, Object?>{
       RouteMatchListCodec._locationKey: location,
-      if (encodedExtra != null) RouteMatchListCodec._extraKey: encodedExtra,
+      RouteMatchListCodec.extraKey: encodedExtra ?? extra,
       if (imperativeMatches != null)
-        RouteMatchListCodec._imperativeMatchesKey: imperativeMatches,
+        RouteMatchListCodec.imperativeMatchesKey: imperativeMatches,
       if (pageKey != null) RouteMatchListCodec._pageKey: pageKey,
     };
   }
@@ -420,19 +420,22 @@ class _RouteMatchListDecoder
   RouteMatchList convert(Map<Object?, Object?> input) {
     final String rootLocation =
         input[RouteMatchListCodec._locationKey]! as String;
-    final String? encodedExtra =
-        input[RouteMatchListCodec._extraKey] as String?;
+
+    final Object? encodedExtra = input[RouteMatchListCodec.extraKey];
     final Object? extra;
-    if (encodedExtra != null) {
+
+    // this is for backwards compatibility
+    if (encodedExtra is String) {
       extra = json.decoder.convert(encodedExtra);
     } else {
-      extra = null;
+      extra = encodedExtra;
     }
+
     RouteMatchList matchList =
         configuration.findMatch(rootLocation, extra: extra);
 
     final List<Object?>? imperativeMatches =
-        input[RouteMatchListCodec._imperativeMatchesKey] as List<Object?>?;
+        input[RouteMatchListCodec.imperativeMatchesKey] as List<Object?>?;
     if (imperativeMatches != null) {
       for (final Map<Object?, Object?> encodedImperativeMatch
           in imperativeMatches.whereType<Map<Object?, Object?>>()) {
