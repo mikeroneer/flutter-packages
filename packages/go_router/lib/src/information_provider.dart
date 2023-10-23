@@ -123,16 +123,32 @@ class GoRouteInformationProvider extends RouteInformationProvider
         replace = false;
         break;
     }
+
     SystemNavigator.selectMultiEntryHistory();
     SystemNavigator.routeInformationUpdated(
       // TODO(chunhtai): remove this ignore and migrate the code
       // https://github.com/flutter/flutter/issues/124045.
       // ignore: unnecessary_null_checks, unnecessary_non_null_assertion
       location: routeInformation.location!,
-      state: routeInformation.state,
+      state: _dropNonSerializableExtra(routeInformation.state),
       replace: replace,
     );
     _value = _valueInEngine = routeInformation;
+  }
+
+  /// Drops the extra parameter if present in [state] and not JSON serializable.
+  Map<Object?, Object?>? _dropNonSerializableExtra(Object? state) {
+    Map<Object?, Object?>? result;
+
+    if (state is Map<Object?, Object?>) {
+      result = Map<Object?, Object?>.from(state);
+    }
+
+    if (result != null && result[RouteMatchListCodec.extraKey] is! String) {
+      result.remove(RouteMatchListCodec.extraKey);
+    }
+
+    return result;
   }
 
   @override
